@@ -109,13 +109,20 @@ cleanup_backups /etc/default
 for pkg in                              \
     adwaita-fonts                       \
     adwaita-icon-theme-                 \
+    alsa-firmware                       \
+    alsa-plugins                        \
+    alsa-utils                          \
     ananicy-cpp                         \
     at-spi2-core                        \
+    bluez-hid2hci                       \
+    bluez-utils                         \
+    bpftune-git                         \
     btrfs-assistant                     \
     cachyos-ananicy-rules               \
     cachyos-plymouth-bootanimation      \
     cachyos-plymouth-theme              \
-    cachyos-settings                    \
+    cachyos-wallpapers                  \
+    cmfy-bin                            \
     default-cursors                     \
     desktop-file-utils                  \
     dosfstools                          \
@@ -130,16 +137,21 @@ for pkg in                              \
     gtk3                                \
     gtk4                                \
     hicolor-icon-theme                  \
-    inxi                                \
     iw                                  \
+    lib32-curl                          \
+    lib32-expat                         \
+    lib32-json-c                        \
     lib32-libdrm                        \
     lib32-libglvnd                      \
+    lib32-libxml2                       \
     lib32-libxxf86vm                    \
     lib32-mesa                          \
+    lib32-ncurses                       \
     lib32-nvidia-utils                  \
     lib32-opencl-nvidia                 \
     lib32-vulkan-icd-loader             \
     lib32-wayland                       \
+    lib32-xz                            \
     libcolord                           \
     libcups                             \
     libdecor                            \
@@ -158,10 +170,10 @@ for pkg in                              \
     libxv                               \
     linux-cachyos                       \
     linux-cachyos-headers               \
-    linux-cachyos-nvidia-open           \
     linux-cachyos-lts                   \
     linux-cachyos-lts-headers           \
     linux-cachyos-lts-nvidia-open       \
+    linux-cachyos-nvidia-open           \
     linux-cachyos-server                \
     linux-firmware-radeon               \
     mesa                                \
@@ -169,17 +181,22 @@ for pkg in                              \
     nvidia-cg-toolkit                   \
     nvidia-settings                     \
     nvidia-utils                        \
+    octopi                              \
     qt6-base                            \
     qt6-svg                             \
     qt6-translations                    \
+    qt6-wayland                         \
     shelly                              \
     spdlog                              \
+    terminology                         \
+    unrar                               \
+    unrar                               \
     vmaf                                \
     vulkan-icd-loader                   \
     wayland                             \
     wireless-regdb                      \
+    xf86-input-libinput                 \
     xorg-xprop                          \
-    zram-generator                      \
 
 do
     pacman -Qtq | rg -sq "^$pkg\$" &&
