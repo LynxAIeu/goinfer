@@ -1,4 +1,5 @@
 package config;
+
 use strict;
 use warnings;
 use Exporter 'import';
@@ -15,6 +16,8 @@ our @EXPORT = qw(parse_line reconstruct);
 #   PARAM=(value token ...)         (array / parentheses)
 #   PARAM[n]="value token ..."      (indexed array, double‑quoted)
 #   PARAM[n]='value token ...'      (indexed array, single‑quoted)
+#   PARAM[...]+="value token ..."   (append to indexed array, double‑quoted)
+#   PARAM[...]+='value token ...'   (append to indexed array, single‑quoted)
 #
 # Tokens are separated by whitespace. The scripts preserve the original quoting
 # style and whitespace normalisation (multiple spaces are collapsed to one).
@@ -34,23 +37,31 @@ our @EXPORT = qw(parse_line reconstruct);
 
 # -----------------------------------------------------------------------------
 # parse_line – Extract prefix, inner content, suffix, and delimiter type.
-# Returns a hashref or undef (unquoted fallback).
+# The trailing newline is preserved in the suffix so that reconstruct
+# emits a properly terminated line.
 # -----------------------------------------------------------------------------
 sub parse_line {
     my ($line, $param) = @_;
-    if ($line =~ /^(\s*\Q$param\E\s*=\s*)\(([^)]*)\)(.*)/) {
+
+    if ($line =~ /^(\s*\Q$param\E\s*=\s*)\(([^)]*)\)(.*\n?)$/) {
         return { prefix => $1, inner => $2, suffix => $3, delim => '()' };
     }
-    elsif ($line =~ /^(\s*\Q$param\E\s*\[\d+\]\s*=\s*)"([^"]*)"(.*)/) {
+    elsif ($line =~ /^(\s*\Q$param\E\s*\[\w+\]\s*\+=\s*)"([^"]*)"(.*\n?)$/) {
         return { prefix => $1, inner => $2, suffix => $3, delim => 'dq' };
     }
-    elsif ($line =~ /^(\s*\Q$param\E\s*\[\d+\]\s*=\s*)'([^']*)'(.*)/) {
+    elsif ($line =~ /^(\s*\Q$param\E\s*\[\w+\]\s*\+=\s*)'([^']*)'(.*\n?)$/) {
         return { prefix => $1, inner => $2, suffix => $3, delim => 'sq' };
     }
-    elsif ($line =~ /^(\s*\Q$param\E\s*=\s*)"([^"]*)"(.*)/) {
+    elsif ($line =~ /^(\s*\Q$param\E\s*\[\d+\]\s*=\s*)"([^"]*)"(.*\n?)$/) {
         return { prefix => $1, inner => $2, suffix => $3, delim => 'dq' };
     }
-    elsif ($line =~ /^(\s*\Q$param\E\s*=\s*)'([^']*)'(.*)/) {
+    elsif ($line =~ /^(\s*\Q$param\E\s*\[\d+\]\s*=\s*)'([^']*)'(.*\n?)$/) {
+        return { prefix => $1, inner => $2, suffix => $3, delim => 'sq' };
+    }
+    elsif ($line =~ /^(\s*\Q$param\E\s*=\s*)"([^"]*)"(.*\n?)$/) {
+        return { prefix => $1, inner => $2, suffix => $3, delim => 'dq' };
+    }
+    elsif ($line =~ /^(\s*\Q$param\E\s*=\s*)'([^']*)'(.*\n?)$/) {
         return { prefix => $1, inner => $2, suffix => $3, delim => 'sq' };
     }
     return undef;   # unquoted / fallback
