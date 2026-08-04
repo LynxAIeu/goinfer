@@ -118,11 +118,11 @@ curl -X POST localhost:8080/v1/chat/completions \
 ### All-in-one script
 
 Build all dependencies and run Goinfer with the bash script
-[`clone-pull-build-run.sh`](./scripts/clone-pull-build-run.sh)
+[`clone-pull-build-run.sh`](./bin/clone-pull-build-run.sh)
 
     ```sh
     git clone https://github.com/lynxai-team/goinfer
-    goinfer/scripts/clone-pull-build-run.sh
+    goinfer/bin/clone-pull-build-run.sh
     ```
 
 This script clones and builds [llama.cpp](https://github.com/ggml-org/llama.cpp)
@@ -154,10 +154,10 @@ git -C path/repo/goinfer pull --ff-only
 export GI_MODELS_DIR=/home/me/models
 export GI_DEFAULT_MODEL=my-favorite-model.gguf
 export GI_LLAMA_EXE=/home/me/bin/llama-server
-path/repo/goinfer/scripts/clone-pull-build-run.sh -no-api-key
+path/repo/goinfer/bin/clone-pull-build-run.sh -no-api-key
 ```
 
-Use the flag `--help` or the usage within the [script](./scripts/clone-pull-build-run.sh).
+Use the flag `--help` or the usage within the [script](./bin/clone-pull-build-run.sh).
 
 ## Configuration
 

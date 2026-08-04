@@ -305,7 +305,7 @@ RUN set -ex                                           ;\
 RUN cp -v build/bin/* /app
 
 # llama-server may be run with "--jinja --chat-template-file template.jinja"
-COPY scripts/template.jinja /app/
+COPY bin/template.jinja /app/
 
 
 # --------------------------------------------------------------------

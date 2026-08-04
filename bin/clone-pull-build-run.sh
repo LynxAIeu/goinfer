@@ -33,7 +33,7 @@ set the GI_MODELS_DIR. This also speeds up the script (disables GUFF files searc
 The [goinfer flags] are passed to goinfer.
 For example, to run Goinfer without API key:
 
-  ~/repo/goinfer/scripts/clone-pull-build-run.sh -no-api-key
+  ~/repo/goinfer/bin/clone-pull-build-run.sh -no-api-key
 
 One-line example:
 
@@ -172,7 +172,7 @@ build_llamaCpp() {
       -D LLAMA_LLGUIDANCE=${LLAMA_LLGUIDANCE:-OFF}                                            \
       .
       # -D GGML_SCHED_MAX_COPIES=${GGML_SCHED_MAX_COPIES:-1}                                  \
-    cmake --build build/ --config Release --clean-first --target llama-server llama-bench
+    cmake --build build/ --config Release --clean-first --target llama-server
   )
 }
 
