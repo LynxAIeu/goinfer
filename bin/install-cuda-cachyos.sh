@@ -45,6 +45,7 @@ source "$dir/config.sh"
         limine                               \
         linux-cachyos-server-lto-nvidia-open \
                                              \
+        blas-openblas                        \
         cuda                                 \
         cudnn                                \
         nccl                                 \
