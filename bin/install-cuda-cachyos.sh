@@ -39,7 +39,7 @@ source "$dir/config.sh"
     set -x
 
     # Install required packages for llama.cpp on a server
-    $sudo pacman -Syu --noconfirm            \
+    $sudo pacman -Syu --noconfirm --needed   \
                                              \
         btrfs-progs                          \
         limine                               \
