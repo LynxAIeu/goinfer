@@ -108,6 +108,7 @@ cleanup_backups /etc/default
 # Remove Desktop-related packages
 # TODO also remove: plymouth
 for pkg in                              \
+    accountsservice                     \
     adwaita-fonts                       \
     adwaita-icon-theme-                 \
     alsa-firmware                       \
@@ -115,14 +116,18 @@ for pkg in                              \
     alsa-utils                          \
     ananicy-cpp                         \
     at-spi2-core                        \
+    awesome-terminal-fonts              \
     bluez-hid2hci                       \
     bluez-utils                         \
     bpftune-git                         \
     btrfs-assistant                     \
     cachyos-ananicy-rules               \
+    cachyos-kernel-manager              \
+    cachyos-packageinstaller            \
     cachyos-plymouth-bootanimation      \
     cachyos-plymouth-theme              \
     cachyos-wallpapers                  \
+    cantarell-fonts                     \
     cmfy-bin                            \
     default-cursors                     \
     desktop-file-utils                  \
@@ -179,10 +184,13 @@ for pkg in                              \
     linux-firmware-radeon               \
     mesa                                \
     mesa-utils                          \
+    noto-color-emoji-fontconfig         \
+    noto-fonts                          \
     nvidia-cg-toolkit                   \
     nvidia-settings                     \
     nvidia-utils                        \
     octopi                              \
+    qt6-base                            \
     qt6-base                            \
     qt6-svg                             \
     qt6-translations                    \
@@ -190,6 +198,10 @@ for pkg in                              \
     shelly                              \
     spdlog                              \
     terminology                         \
+    ttf-bitstream-vera                  \
+    ttf-dejavu                          \
+    ttf-liberation                      \
+    ttf-opensans                        \
     unrar                               \
     unrar                               \
     vmaf                                \
