@@ -49,8 +49,8 @@ grep -q 'KERNEL_CMDLINE\[default\]+=".*nowatchdog.*splash.*"' "$work/etc/default
 # Check that 'quiet' is gone from all non-comment lines
 grep -v '^#' "$work/etc/default/limine" | grep -q 'quiet' && { echo "FAIL: quiet still present (all occurrences)"; exit 1; }
 
-# Look for the backup comment
-grep -q '^# KERNEL_CMDLINE\[default\]+="quiet nowatchdog splash' "$work/etc/default/limine" || { echo "FAIL: backup comment missing"; exit 1; }
+# Look for the backup comment (allow leading spaces)
+grep -q '^\s*# KERNEL_CMDLINE\[default\]+="quiet nowatchdog splash' "$work/etc/default/limine" || { echo "FAIL: backup comment missing"; exit 1; }
 
 # --------------------------------------------------------------------
 # 4. Test config_add (pair)
@@ -65,12 +65,15 @@ config_add KERNEL_CMDLINE nomodset "$work/etc/default/limine"
 grep -q 'nomodset' "$work/etc/default/limine" || { echo "FAIL: flag not added"; exit 1; }
 
 # --------------------------------------------------------------------
-# 6. Idempotency test
+# 6. Idempotency test – file content must not change AND no new backup
 # --------------------------------------------------------------------
+backup_count_before=$(find "$work/etc/default" -maxdepth 1 -name '*.backup.*' | wc -l)
 before=$(sha256sum "$work/etc/default/limine" | awk '{print $1}')
 config_add KERNEL_CMDLINE nomodset "$work/etc/default/limine"
 after=$(sha256sum "$work/etc/default/limine" | awk '{print $1}')
+backup_count_after=$(find "$work/etc/default" -maxdepth 1 -name '*.backup.*' | wc -l)
 [[ "$before" == "$after" ]] || { echo "FAIL: not idempotent"; exit 1; }
+[[ "$backup_count_before" -eq "$backup_count_after" ]] || { echo "FAIL: backup created on idempotent run"; exit 1; }
 
 # --------------------------------------------------------------------
 # 7. Test cleanup_backups

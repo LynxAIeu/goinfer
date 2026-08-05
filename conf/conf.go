@@ -15,23 +15,31 @@ import (
 	"syscall"
 
 	"github.com/goccy/go-yaml"
+
 	"github.com/lynxai-team/garcon/gerr"
+
 	"github.com/lynxai-team/goinfer/proxy/config"
 )
 
 type (
 	// Cfg holds all settings.
 	Cfg struct {
-		ExtraModels  map[string]string     `toml:"extra_models"   yaml:"extra_models"   comment:"Download models using llama-server flags\nsee : github.com/ggml-org/llama.cpp/blob/master/common/arg.cpp#L3000"`
-		Info         map[string]*ModelInfo `toml:"-"              yaml:"-"`
-		Swap         *config.Config        `toml:"-"              yaml:"-"`
-		Llama        Llama                 `toml:"llama"          yaml:"llama"`
-		APIKey       string                `toml:"api_key"        yaml:"api_key"        comment:"⚠️ Set your API key, can be 64-hex-digit (32-byte) 🚨\nGoinfer sets a random API key with: ./goinfer -overwrite-all"`
-		Host         string                `toml:"host,omitempty" yaml:"host,omitempty" comment:"\nHost to listen (env. var: GI_HOST)"`
-		Origins      string                `toml:"origins"        yaml:"origins"        comment:"\nCORS whitelist (env. var: GI_ORIGINS)"`
-		ModelsDir    string                `toml:"models_dir"     yaml:"models_dir"     comment:"\nGoinfer recursively searches GGUF files in one or multiple folders separated by ':'\nList your GGUF dirs with: locate .gguf | sed -e 's,/[^/]*$,,' | uniq\nenv. var: GI_MODELS_DIR"`
-		DefaultModel string                `toml:"default_model"  yaml:"default_model"  comment:"\nThe default model name to load at startup\nCan also be set with: ./goinfer -start <model-name>"`
-		Addr         string                `toml:"addr"           yaml:"addr"           comment:"address can be 'host:port' or 'ip:por' or simply ':port' (for host = localhost)"`
+		ExtraModels    map[string]string     `json:"extra_models,omitempty"  toml:"extra_models" yaml:"extra_models" env:"GI_EXTRA_MODELS" comment:"Download models using llama-server flags - GI_EXTRA_MODELS\nsee : github.com/ggml-org/llama.cpp/blob/master/common/arg.cpp#L3000"`
+		Info           map[string]*ModelInfo `json:"info,omitempty"  toml:"-" yaml:"-"`
+		Swap           *config.Config        `json:"swap,omitempty"  toml:"-" yaml:"-"`
+		Llama          Llama                 `json:"llama,omitzero"  toml:"llama" yaml:"llama"`
+		APIKey         string                `json:"api_key,omitempty"  toml:"api_key" yaml:"api_key" env:"GI_API_KEY" comment:"⚠️ Set your API key, can be 64-hex-digit (32-byte) 🚨\nGoinfer sets a random API key with: ./goinfer -overwrite-all"`
+		Host           string                `json:"host,omitempty"  toml:"host,omitempty" yaml:"host,omitempty" env:"GI_HOST" comment:"\nHost to listen - GI_HOST"`
+		Origins        string                `json:"origins,omitempty"  toml:"origins" yaml:"origins" env:"GI_ORIGINS" comment:"\nCORS whitelist - GI_ORIGINS"`
+		ModelsDir      string                `json:"models_dir,omitempty"  toml:"models_dir" yaml:"models_dir" env:"GI_MODELS_DIR" comment:"\nGoinfer recursively searches GGUF files in one or multiple folders separated by ':'\nList your GGUF dirs with: locate .gguf | sed -e 's,/[^/]*$,,' | uniq\nenv. var: GI_MODELS_DIR"`
+		DefaultModel   string                `json:"default_model,omitempty"  toml:"default_model" yaml:"default_model" env:"GI_DEFAULT_MODEL" comment:"\nThe default model name to load at startup - GI_DEFAULT_MODEL\nCan also be set with: ./goinfer -start <model-name>"`
+		ListenAddr     string                `json:"listen_addr,omitempty"  toml:"listen_addr" yaml:"listen_addr" env:"GI_LISTEN_ADDR" comment:"address can be 'ip:port' or 'host:port' or ':port' (default host is localhost) - GI_LISTEN_ADDR"`
+		Endpoints      []string              `json:"endpoints,omitempty"  toml:"endpoints" yaml:"endpoints" env:"GI_ENDPOINTS,required,separator=;" comment:"Semicolon-separated list of http(s):// URLs to connect to one or more Goinfer-proxies"`
+		TrustedSubnets []string              `json:"trusted_subnets,omitempty"  toml:"trusted_subnets,omitempty" yaml:"trusted_subnets,omitempty" env:"GI_TRUSTED_SUBNETS,separator=," comment:"\nComma-separated CIDR blocks for X-Forwarded-For validation - GI_TRUSTED_SUBNETS"`
+		TLS            bool                  `json:"tls,omitempty"  toml:"tls" yaml:"tls" env:"GI_TLS" envDefault:"true" comment:"\nSet to false to serve clear-text HTTP/2 (h2c) and disable HTTP/3 - GI_TLS"`
+		ACMEEmail      string                `json:"acme_email,omitempty"  toml:"acme_email" yaml:"acme_email" env:"GI_ACME_EMAIL" comment:"\nE-mail address for ACME certificate issuance - GI_ACME_EMAIL"`
+		ACMEDir        string                `json:"acme_dir,omitempty"    toml:"acme_dir"   yaml:"acme_dir" env:"GI_ACME_DIR" envDefault:"/certs" comment:"\nDirectory used by autocert for caching certificates (must be writable) - GI_ACME_DIR"`
+		LogLevel       string                `json:"log_level,omitempty"   toml:"log_level" yaml:"log_level" env:"GI_LOG_LEVEL" envDefault:"info" comment:"address can be 'host:port' or 'ip:por' or simply ':port' (for host = localhost)"`
 	}
 
 	// Llama holds the inference engine settings.
@@ -73,7 +81,7 @@ func DefaultCfg() *Cfg {
 		APIKey:       "",
 		Host:         "",
 		Origins:      "localhost",
-		Addr:         ":8080",
+		ListenAddr:   ":8080",
 		Llama: Llama{
 			Exe:     "/home/me/llama.cpp/build/bin/llama-server",
 			Verbose: "",
@@ -195,9 +203,9 @@ func (cfg *Cfg) validate(noAPIKey bool) error {
 // validateAddr() prevents bad ports: they are blocked by web browsers,
 // as specified by the Fetch standard: http://fetch.spec.whatwg.org/#bad-port
 func (cfg *Cfg) validateAddr() error {
-	_, port, err := net.SplitHostPort(cfg.Addr)
+	_, port, err := net.SplitHostPort(cfg.ListenAddr)
 	if err != nil {
-		slog.Error("Cannot SplitHostPort", "cfg.Addr", cfg.Addr, "err", err)
+		slog.Error("Cannot SplitHostPort", "cfg.Addr", cfg.ListenAddr, "err", err)
 		return err
 	}
 	if slices.Contains(badPorts, port) {

@@ -1,9 +1,10 @@
 #!/usr/bin/env perl
 # config_rm.pl – Remove **all** occurrences of a token from configuration lines.
 #
-# Usage: config_rm.pl PARAM TOKEN FILE
+# Usage: config_rm.pl PARAM TOKEN FILE SUFFIX
 #
-# The script is idempotent: if TOKEN is not present, no change is made.
+# The script is idempotent:
+# if TOKEN is not present, no change is made and no backup is created.
 #
 # CONSTRAINTS: see config.pm.
 
@@ -12,37 +13,48 @@ use warnings;
 use lib '.';
 use config;
 
-my ($param, $token);
-BEGIN {
-    ($param, $token) = splice @ARGV, 0, 2;
-}
+my ($param, $token, $file, $suffix);
+BEGIN { ($param, $token, $file, $suffix) = splice @ARGV, 0, 4; }
 
-while (<>) {
-    if (/^\s*\Q$param\E\b/) {
-        my $orig = $_;
-        my $parsed = parse_line($_, $param);
+open my $fh, '<', $file or die "$file: $!\n";
+my @lines = <$fh>;
+close $fh;
+
+my $changed = 0;
+my @output;
+
+for my $line (@lines) {
+    if ($line =~ /^\s*\Q$param\E\b/) {
+        my $orig = $line;
+        my $parsed = parse_line($line, $param);
 
         if ($parsed) {
             my @tokens = split(/\s+/, $parsed->{inner});
             my @new_tokens = grep { $_ ne $token } @tokens;
             if (@new_tokens != @tokens) {
                 my $new_inner = join(" ", @new_tokens);
-                $_ = reconstruct($parsed, $new_inner);
-            } else {
-                next;
+                $line = reconstruct($parsed, $new_inner);
+                $changed = 1;
+                push @output, "# $orig";
             }
         } else {
-            # Fallback: unquoted deletion.
-            s/\b\Q$token\E\b\s*//g;
-            s/^ //;
-            s/ $//;
-            if ($_ eq $orig) {
-                next;
+            my $tmp = $line;
+            $tmp =~ s/\b\Q$token\E\b\s*//g;
+            $tmp =~ s/^ //;
+            $tmp =~ s/ $//;
+            if ($tmp ne $orig) {
+                $line = $tmp;
+                $changed = 1;
+                push @output, "# $orig";
             }
         }
-
-        print "# $orig";    # $orig already contains its newline
     }
-} continue {
-    print;                  # print the (possibly modified) line
+    push @output, $line;
+}
+
+if ($changed) {
+    rename $file, "$file$suffix" or die "rename $file: $!\n";
+    open my $out, '>', $file or die "$file: $!\n";
+    print $out @output;
+    close $out;
 }

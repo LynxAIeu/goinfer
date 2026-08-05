@@ -16,8 +16,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/lynxai-team/garcon/gerr"
 	"github.com/pelletier/go-toml/v2"
+
+	"github.com/lynxai-team/garcon/gerr"
 )
 
 // GoinferINI is the config filename.
@@ -65,14 +66,14 @@ func parseGoinferINI(data []byte, noAPIKey bool, extra, start string) (*Cfg, err
 	if cfg.Host != "" {
 		switch {
 		case strings.ContainsRune(cfg.Host[:len(cfg.Host)-1], ':'):
-			cfg.Addr = cfg.Host // Host contains the port
-		case cfg.Addr == "":
-			cfg.Addr = cfg.Host + ":8080"
-		case cfg.Addr[0] == ':':
-			cfg.Addr = cfg.Host + cfg.Addr
+			cfg.ListenAddr = cfg.Host // Host contains the port
+		case cfg.ListenAddr == "":
+			cfg.ListenAddr = cfg.Host + ":8080"
+		case cfg.ListenAddr[0] == ':':
+			cfg.ListenAddr = cfg.Host + cfg.ListenAddr
 		default:
-			p := strings.IndexRune(cfg.Addr[1:], ':')
-			cfg.Addr = cfg.Host + cfg.Addr[p:]
+			p := strings.IndexRune(cfg.ListenAddr[1:], ':')
+			cfg.ListenAddr = cfg.Host + cfg.ListenAddr[p:]
 		}
 	}
 

@@ -5,11 +5,11 @@ use warnings;
 use Exporter 'import';
 our @EXPORT = qw(parse_line reconstruct);
 
-# ==============================================================================
+# =========================================================================
 # CONFIGURATION EDITING CONSTRAINTS
 #
-# The editing functions assume that the configuration file uses one of these
-# formats for a parameter assignment:
+# The editing functions assume that the configuration file uses
+# one of these formats for a parameter assignment:
 #
 #   PARAM="value token ..."         (double‑quoted string)
 #   PARAM='value token ...'         (single‑quoted string)
@@ -24,22 +24,21 @@ our @EXPORT = qw(parse_line reconstruct);
 #
 # The parameter name ($param) and token ($token) should be alphanumeric
 # (letters, digits, underscore). The scripts use \Q...\E to protect against
-# regex metacharacters, but they are not expected to contain '=' (for flags) or
-# any special characters that would interfere with parsing.
+# regex metacharacters, but they are not expected to contain '=' (for flags)
+# or any special characters that would interfere with parsing.
 #
 # Lines that are already commented (starting with '#') are ignored.
-# Lines that do not start with the parameter (after optional whitespace) are
-# passed through unchanged.
+# Lines that do not start with the parameter (after optional whitespace)
+# are passed through unchanged.
 #
 # The scripts are idempotent: they will not change a line if the desired state
 # is already present. A backup file is created on every invocation (via perl -i).
-# ==============================================================================
-
-# -----------------------------------------------------------------------------
+# =========================================================================
+# -------------------------------------------------------------------------
 # parse_line – Extract prefix, inner content, suffix, and delimiter type.
-# The trailing newline is preserved in the suffix so that reconstruct
-# emits a properly terminated line.
-# -----------------------------------------------------------------------------
+# The trailing newline is preserved in the suffix so reconstruct emits a
+# properly terminated line.
+# -------------------------------------------------------------------------
 sub parse_line {
     my ($line, $param) = @_;
 
@@ -67,9 +66,9 @@ sub parse_line {
     return undef;   # unquoted / fallback
 }
 
-# -----------------------------------------------------------------------------
-# reconstruct – Rebuild the line from parsed structure and new inner content.
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# reconstruct – Rebuild the line from parsed structure and new inner.
+# -------------------------------------------------------------------------
 sub reconstruct {
     my ($parsed, $new_inner) = @_;
     my $delim = $parsed->{delim};

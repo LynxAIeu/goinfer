@@ -12,9 +12,9 @@ import (
 	"os"
 
 	"github.com/lynxai-team/garcon/vv"
-	"github.com/lynxai-team/goinfer/proxy"
 
 	"github.com/lynxai-team/goinfer/conf"
+	"github.com/lynxai-team/goinfer/proxy"
 )
 
 func main() {
@@ -190,7 +190,7 @@ func doModelsINI(cfg *conf.Cfg) {
 func startServer(cfg *conf.Cfg) {
 	proxyMan := proxy.New(cfg)
 	server := &http.Server{
-		Addr:    cfg.Addr,
+		Addr:    cfg.ListenAddr,
 		Handler: proxyMan,
 	}
 

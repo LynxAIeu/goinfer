@@ -1,10 +1,11 @@
 #!/usr/bin/env perl
 # config_add.pl – Add or update a key=value pair, or ensure a flag token.
 #
-# Usage: config_add.pl PARAM TOKEN FILE
+# Usage: config_add.pl PARAM TOKEN FILE SUFFIX
 #
 # If TOKEN contains '=', it is treated as a pair; otherwise as a flag.
-# The script is idempotent: it only changes lines that need updating.
+# The script is idempotent: it only changes lines that need updating and
+#                           only creates a backup when a change is made.
 #
 # CONSTRAINTS: see config.pm.
 
@@ -13,10 +14,8 @@ use warnings;
 use lib '.';
 use config;
 
-my ($param, $token);
-BEGIN {
-    ($param, $token) = splice @ARGV, 0, 2;
-}
+my ($param, $token, $file, $suffix);
+BEGIN { ($param, $token, $file, $suffix) = splice @ARGV, 0, 4; }
 
 my $mode = ($token =~ /=/) ? 'pair' : 'flag';
 my ($key, $value) = $mode eq 'pair' ? split /=/, $token, 2 : ($token, undef);
@@ -45,34 +44,46 @@ sub modify_tokens {
     }
 }
 
-while (<>) {
-    if (/^\s*\Q$param\E\b/) {
-        my $orig = $_;
-        my $parsed = parse_line($_, $param);
+open my $fh, '<', $file or die "$file: $!\n";
+my @lines = <$fh>;
+close $fh;
+
+my $changed = 0;
+my @output;
+
+for my $line (@lines) {
+    if ($line =~ /^\s*\Q$param\E\b/) {
+        my $orig = $line;
+        my $parsed = parse_line($line, $param);
 
         if ($parsed) {
             my @tokens = split(/\s+/, $parsed->{inner});
             modify_tokens($mode, \@tokens, $key, $value);
             my $new_inner = join(" ", @tokens);
-            $_ = reconstruct($parsed, $new_inner);
+            $line = reconstruct($parsed, $new_inner);
         } else {
-            # Fallback: unquoted editing.
             if ($mode eq 'pair') {
-                if (!s/(.*)\Q$key\E=[^[:space:]]*/$1$key=$value/) {
-                    $_ .= (/\S$/ ? " " : "") . "$key=$value";
+                if (!($line =~ s/(.*)\Q$key\E=[^[:space:]]*/$1$key=$value/)) {
+                    $line .= ($line =~ /\S$/ ? " " : "") . "$key=$value";
                 }
             } else {
-                if (!/\b\Q$key\E\b/) {
-                    $_ .= (/\S$/ ? " " : "") . $key;
+                if (!($line =~ /\b\Q$key\E\b/)) {
+                    $line .= ($line =~ /\S$/ ? " " : "") . $key;
                 }
             }
         }
 
-        if ($_ eq $orig) {
-            next;
+        if ($line ne $orig) {
+            $changed = 1;
+            push @output, "# $orig";
         }
-        print "# $orig";    # $orig already contains its newline
     }
-} continue {
-    print;                  # print the (possibly modified) line
+    push @output, $line;
+}
+
+if ($changed) {
+    rename $file, "$file$suffix" or die "rename $file: $!\n";
+    open my $out, '>', $file or die "$file: $!\n";
+    print $out @output;
+    close $out;
 }

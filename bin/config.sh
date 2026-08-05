@@ -13,7 +13,6 @@ dir=${dir:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
 #
 # Usage: config_add PARAM TOKEN FILE
 #   If TOKEN contains '=', it is treated as a pair; otherwise as a flag.
-#   The function does nothing if no line starts with PARAM (after whitespace).
 #
 # Perl scripts (must be in the same directory):
 #   config_add.pl  – add/update a key=value pair or ensure a flag token
@@ -27,19 +26,19 @@ dir=${dir:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}
 #       PARAM=(value token ...)
 #       PARAM[n]="value token ..."
 #       PARAM[n]='value token ...'
-#   - Tokens are whitespace‑separated.
+#   - Tokens are whitespace-separated.
 #   - $param and $token are expected to be alphanumeric (protected by \Q...\E).
 #   - Only lines starting with $param (after optional whitespace) are edited.
-#   - Already‑commented lines (starting with '#') are ignored.
+#   - Already-commented lines (starting with '#') are ignored.
 #   - The scripts are idempotent: they do not change a line if the desired
 #     state already exists.
-#   - A backup file is created on every invocation (via perl -i).
+#   - A backup file is created only when a change is actually made.
 # ----------------------------------------------------------------------
 config_add() { (
 	local param="$1" token="$2" file="$3"
 	local suffix=".backup.$(date +%F_%H%M%S_%N)"
 	set -x
-	$sudo perl -i"$suffix" -I "$dir" "$dir/config_add.pl" "$param" "$token" "$file"
+	$sudo perl -I "$dir" "$dir/config_add.pl" "$param" "$token" "$file" "$suffix"
 ); }
 
 # ----------------------------------------------------------------------
@@ -51,7 +50,7 @@ config_rm() { (
 	local param="$1" token="$2" file="$3"
 	local suffix=".backup.$(date +%F_%H%M%S_%N)"
 	set -x
-	$sudo perl -i"$suffix" -I "$dir" "$dir/config_rm.pl" "$param" "$token" "$file"
+	$sudo perl -I "$dir" "$dir/config_rm.pl" "$param" "$token" "$file" "$suffix"
 ); }
 
 # ----------------------------------------------------------------------
@@ -75,6 +74,8 @@ cleanup_backups() {
 	local keep_count=10
 
 	# Collect all matching files with their mtime (seconds since epoch).
+	# sort -z -n is required because find -printf "...\0" emits
+	# NUL-terminated records, not newline-terminated lines.
 	local files=()
 	while IFS= read -r -d '' entry; do
 		files+=("$entry")
