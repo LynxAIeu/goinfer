@@ -55,22 +55,34 @@ source "$dir/config.sh"
                                              \
         ccache                               \
         cmake                                \
+        gcc                                  \
         git                                  \
-        go                                   \
+        make                                 \
         ninja                                \
+                                             \
+        gawk                                 \
+        go                                   \
+        jq                                   \
         npm                                  \
         perl                                 \
-        ripgrep                              \
+        sed                                  \
                                              \
-        btop                                 \
-        htop                                 \
-        vim                                  \
-        neovim-lspconfig                     \
-        neovim                               \
-        nano                                 \
+        coreutils                            \
+        ripgrep                              \
         tmux                                 \
         tree                                 \
         wget                                 \
+                                             \
+        bash                                 \
+        zsh                                  \
+                                             \
+        btop                                 \
+        htop                                 \
+                                             \
+        nano                                 \
+        neovim                               \
+        neovim-lspconfig                     \
+        vim                                  \
 
 )
 
